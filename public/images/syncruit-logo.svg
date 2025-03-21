@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="200" viewBox="0 0 200 200" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#00bcd4;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#2196f3;stop-opacity:1" />
+        </linearGradient>
+    </defs>
+    <g fill="url(#logoGradient)">
+        <!-- Outer circles -->
+        <path d="M100,20 C144.18,20 180,55.82 180,100 C180,144.18 144.18,180 100,180 C55.82,180 20,144.18 20,100 C20,55.82 55.82,20 100,20 M100,10 C50.29,10 10,50.29 10,100 C10,149.71 50.29,190 100,190 C149.71,190 190,149.71 190,100 C190,50.29 149.71,10 100,10" />
+        <!-- Inner circles -->
+        <path d="M100,40 C133.14,40 160,66.86 160,100 C160,133.14 133.14,160 100,160 C66.86,160 40,133.14 40,100 C40,66.86 66.86,40 100,40 M100,30 C61.34,30 30,61.34 30,100 C30,138.66 61.34,170 100,170 C138.66,170 170,138.66 170,100 C170,61.34 138.66,30 100,30" />
+    </g>
+</svg>
