@@ -1,4 +1,4 @@
-# AIDI1000 - Career Support System - AI-Powered Platform
+# AIDI1003 - Career Support System - AI-Powered Platform
 
 ## Overview
 
