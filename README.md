@@ -122,3 +122,4 @@ The project proposal references several academic papers and industry reports on 
 The **Career Support System** is a forward-thinking AI-powered platform designed to transform the way job seekers and HR professionals interact with the job market. By integrating advanced AI features, the platform aims to enhance workforce efficiency, reduce attrition, and optimize talent acquisition, ultimately driving success for both individuals and organizations.
 
 ---
+Link to Dashboard: https://app.powerbi.com/groups/me/reporats/93cb6cf2-9d35-44a0-87ef-5bf2876d2ffc/6aa9ddc18de8ea40102f?experience=power-bi
