@@ -11,13 +11,16 @@
     "@react-three/drei": "^9.122.0",
     "@react-three/fiber": "^8.18.0",
     "axios": "^1.4.0",
+    "docx": "^7.8.2",
+    "file-saver": "^2.0.5",
     "formik": "^2.2.9",
     "gsap": "^3.12.7",
+    "jspdf": "^2.5.1",
     "openai": "^4.86.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.11.0",
-    "react-scripts": "5.0.1",
+    "react-scripts": "^5.0.1",
     "react-speech-recognition": "^3.10.0",
     "three": "^0.159.0",
     "three-mesh-bvh": "^0.6.8",
@@ -27,7 +30,8 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "start-backend": "cd backend && python run_server.py"
   },
   "eslintConfig": {
     "extends": [

@@ -1,0 +1,14 @@
+flask
+flask-cors
+numpy
+scikit-learn
+spacy
+python-docx
+reportlab
+nltk==3.8.1
+pandas
+joblib
+tensorflow
+gensim
+matplotlib
+seaborn
