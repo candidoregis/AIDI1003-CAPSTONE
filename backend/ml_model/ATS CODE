@@ -1,0 +1,176 @@
+import pandas as pd
+
+# Load the dataset from the attached file
+file_path = "/mnt/data/resume_data.csv"
+df = pd.read_csv(file_path)
+
+# Display the first few rows to inspect the data structure
+print("First 5 rows of the dataset:")
+print(df.head())
+
+# Select a subset of columns that are relevant for matching resumes with job descriptions.
+# Adjust the column names if needed according to your dataset.
+df = df[['career_objective', 'skills', 'major_field_of_studies', 
+         'professional_company_names', '﻿job_position_name', 
+         'educationaL_requirements', 'experiencere_requirement', 
+         'skills_required', 'matched_score']]
+
+# Fill missing values with an empty string (you may choose another strategy if needed)
+df.fillna("", inplace=True)
+
+# Combine several resume fields into a single string (resume_text)
+df['resume_text'] = df['career_objective'] + " " + df['skills'] + " " + df['major_field_of_studies'] + " " + df['professional_company_names']
+
+# Combine job description related fields into a single string (job_text)
+df['job_text'] = df['﻿job_position_name'] + " " + df['educationaL_requirements'] + " " + df['experiencere_requirement'] + " " + df['skills_required']
+
+# Convert matched_score to binary labels: 1 for high match, 0 for low match.
+# Here, we assume a threshold of 0.6. You can adjust based on your data distribution.
+df['match_label'] = (df['matched_score'].astype(float) > 0.6).astype(int)
+
+from sklearn.model_selection import train_test_split
+
+# Split data into training and test sets with stratification on match_label
+train_texts, test_texts, train_labels, test_labels = train_test_split(
+    df[['resume_text', 'job_text']], df['match_label'], test_size=0.2, random_state=42, stratify=df['match_label']
+)
+
+print("Training samples:", len(train_texts))
+print("Test samples:", len(test_texts))
+
+from transformers import BertTokenizerFast
+
+# Initialize the tokenizer using BERT-base
+tokenizer = BertTokenizerFast.from_pretrained("bert-base-uncased")
+
+# Tokenize the combined resume and job texts.
+# We provide two lists: one for the resume_text and one for the job_text.
+train_encodings = tokenizer(list(train_texts['resume_text']), list(train_texts['job_text']), 
+                              truncation=True, padding=True, max_length=256)
+test_encodings = tokenizer(list(test_texts['resume_text']), list(test_texts['job_text']), 
+                             truncation=True, padding=True, max_length=256)
+
+import torch
+
+class ResumeDataset(torch.utils.data.Dataset):
+    def __init__(self, encodings, labels):
+        self.encodings = encodings
+        self.labels = labels
+
+    def __len__(self):
+        return len(self.labels)
+
+    def __getitem__(self, idx):
+        # Return a dictionary of tensors for each sample
+        item = {key: torch.tensor(val[idx]) for key, val in self.encodings.items()}
+        item['labels'] = torch.tensor(self.labels.iloc[idx])
+        return item
+
+train_dataset = ResumeDataset(train_encodings, train_labels)
+test_dataset = ResumeDataset(test_encodings, test_labels)
+
+from transformers import BertForSequenceClassification, TrainingArguments, Trainer
+
+# Load pre-trained BERT model for sequence classification (binary classification: num_labels=2)
+model = BertForSequenceClassification.from_pretrained("bert-base-uncased", num_labels=2)
+
+# Define training arguments for the model
+training_args = TrainingArguments(
+    output_dir="./results",
+    evaluation_strategy="epoch",
+    per_device_train_batch_size=8,
+    per_device_eval_batch_size=8,
+    num_train_epochs=3,
+    weight_decay=0.01,
+    logging_dir='./logs',
+    logging_steps=100,
+    load_best_model_at_end=True,
+    metric_for_best_model="accuracy"
+)
+
+from transformers import Trainer
+import torch
+
+# Define a compute_metrics function to calculate accuracy
+def compute_metrics(eval_pred):
+    logits, labels = eval_pred
+    predictions = torch.argmax(torch.tensor(logits), dim=-1)
+    accuracy = (predictions == torch.tensor(labels)).float().mean()
+    return {"accuracy": accuracy.item()}
+
+# Initialize the Trainer
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=train_dataset,
+    eval_dataset=test_dataset,
+    compute_metrics=compute_metrics,
+)
+
+# Fine-tune the model
+trainer.train()
+
+# Save the fine-tuned model and tokenizer
+model.save_pretrained("./fine_tuned_model")
+tokenizer.save_pretrained("./fine_tuned_model")
+
+from flask import Flask, request, jsonify
+import torch
+from transformers import BertForSequenceClassification, BertTokenizerFast
+
+app = Flask(__name__)
+
+# Load the fine-tuned model and tokenizer
+model = BertForSequenceClassification.from_pretrained("./fine_tuned_model")
+tokenizer = BertTokenizerFast.from_pretrained("./fine_tuned_model")
+model.eval()
+
+@app.route("/ats/sample", methods=["GET"])
+def sample():
+    """
+    Returns a sample JSON record for evaluation.
+    """
+    sample_input = {
+        "job_description": "Looking for a data scientist with experience in Python and machine learning.",
+        "resume": "Experienced data scientist skilled in Python, machine learning, and data analysis."
+    }
+    return jsonify(sample_input)
+
+@app.route("/ats/explain", methods=["GET"])
+def explain():
+    """
+    Explains the input fields.
+    """
+    explanation = (
+        "The 'job_description' field should contain the full job posting text. "
+        "The 'resume' field should include the candidate's resume text. "
+        "Both will be combined and tokenized by our model to determine if the candidate is a good match."
+    )
+    return explanation
+
+@app.route("/ats/evaluate", methods=["POST"])
+def evaluate():
+    """
+    Accepts JSON input and returns a prediction.
+    """
+    data = request.get_json()
+    job_description = data["job_description"]
+    resume = data["resume"]
+    
+    # Combine the texts using a [SEP] token
+    combined_text = job_description + " [SEP] " + resume
+    inputs = tokenizer(combined_text, return_tensors="pt", truncation=True, padding="max_length", max_length=256)
+    
+    with torch.no_grad():
+        outputs = model(**inputs)
+    
+    logits = outputs.logits
+    predicted_class = torch.argmax(logits, dim=1).item()
+    
+    # Map prediction to a label (assuming 1: Match, 0: No Match)
+    result = "Match" if predicted_class == 1 else "No Match"
+    return jsonify({"prediction": result})
+
+if __name__ == "__main__":
+    app.run(debug=True)
+
