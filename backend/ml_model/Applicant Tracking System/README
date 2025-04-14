@@ -1,4 +1,5 @@
 In summary, I built a complete AI-assisted Applicant Tracking System by first cleaning and preprocessing our resume data, then fine-tuning a BERT-based model for matching resumes to job descriptions. After that, I deployed the model using Flask, defining endpoints that allow real-time predictions. Finally, our client application shows how other systems can consume our API. This approach not only automates resume screening but also creates a scalable, modular system that can be integrated into modern recruitment workflows
+
 Objective:
 Develop a system that automatically matches resumes to job descriptions using a fine-tuned BERT model deployed as a RESTful API with Flask.
 Step 1: Data Loading and Preprocessing
