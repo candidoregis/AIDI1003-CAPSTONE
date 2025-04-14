@@ -1,0 +1,49 @@
+In summary, I built a complete AI-assisted Applicant Tracking System by first cleaning and preprocessing our resume data, then fine-tuning a BERT-based model for matching resumes to job descriptions. After that, I deployed the model using Flask, defining endpoints that allow real-time predictions. Finally, our client application shows how other systems can consume our API. This approach not only automates resume screening but also creates a scalable, modular system that can be integrated into modern recruitment workflows
+
+Objective:
+Develop a system that automatically matches resumes to job descriptions using a fine-tuned BERT model deployed as a RESTful API with Flask.
+Step 1: Data Loading and Preprocessing
+Load Dataset:
+Import pandas and read resume_data.csv.
+Inspect the first 5 rows to understand the data structure (e.g., career objectives, skills, education, job details).
+Select & Clean Data:
+Choose relevant columns: career_objective, skills, major_field_of_studies, professional_company_names, job_position_name, educationaL_requirements, experiencere_requirement, skills_required, and matched_score.
+Fill missing values with empty strings to ensure data consistency.
+Construct Input Text & Labels:
+Resume Text: Concatenate career_objective, skills, major_field_of_studies, and professional_company_names.
+Job Text: Concatenate job_position_name, educationaL_requirements, experiencere_requirement, and skills_required.
+Convert matched_score to a binary label (match_label): 1 if score > 0.6; otherwise, 0.
+Train-Test Split:
+Split the data into 80% training and 20% testing sets with stratification to maintain label proportions.
+Step 2: Tokenization and Dataset Preparation
+Tokenization:
+Use a pre-trained BERT tokenizer (bert-base-uncased) to tokenize combined resume and job text.
+Apply padding, truncation, and set a consistent max_length (e.g., 256).
+Dataset Conversion:
+Create a custom PyTorch dataset (ResumeDataset) that wraps tokenized inputs and their binary labels.
+This dataset structure is compatible with Hugging Face’s Trainer API.
+Step 3: Fine-Tuning the BERT Model
+Model Initialization:
+Load the pre-trained BERT model for sequence classification with num_labels=2.
+Training Setup:
+Define training parameters (output directory, batch sizes, epochs, evaluation strategy, etc.).
+Create a compute_metrics function to calculate accuracy during training.
+Model Training & Saving:
+Use the Hugging Face Trainer API to fine-tune the model on your dataset.
+Save the fine-tuned model and tokenizer for later use in the deployment.
+Step 4: Deploying as a RESTful API with Flask
+Flask Setup:
+Create a Flask app and load the saved fine-tuned model and tokenizer.
+Endpoints:
+/ats/sample (GET): Returns a sample JSON input showing proper data format.
+/ats/explain (GET): Returns a text explanation of the required input fields.
+/ats/evaluate (POST): Receives JSON input with job_description and resume, processes it with the model, and returns a prediction (“Match” or “No Match”).
+Step 5: Consuming the API
+Client Application:
+Create a separate script using the requests library to test each API endpoint.
+Test GET endpoints for sample and explanation, and POST endpoint with multiple different inputs to view predictions.
+Conclusion
+Overall Process:
+Load and clean the resume dataset → Combine text fields and create binary labels → Tokenize text inputs → Fine-tune a BERT model using Hugging Face Trainer → Deploy the model as a RESTful API using Flask → Build a client to test the API.
+Future Enhancements:
+Include additional data sources, advanced transformer models, candidate ranking modules, a user-friendly UI, and robust security measures for handling sensitive data.

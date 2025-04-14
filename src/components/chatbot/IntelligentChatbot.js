@@ -13,7 +13,7 @@ import {
 import SendIcon from '@mui/icons-material/Send';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
 import PersonIcon from '@mui/icons-material/Person';
-import { getChatCompletion } from '../../services/chatbot/chatbotApiService';
+import { getChatCompletion, checkBackendStatus } from '../../services/chatbot/chatbotApiService';
 
 const CHATBOT_NAME = "SyncruitBot";
 
@@ -54,10 +54,25 @@ const IntelligentChatbot = () => {
     setError(null);
 
     try {
+      console.log('Sending message to backend:', userMessage.content);
+      
+      // Check backend status first
+      try {
+        const isBackendReady = await checkBackendStatus();
+        if (!isBackendReady) {
+          throw new Error('The backend service is not ready. Please try again later.');
+        }
+      } catch (statusError) {
+        console.error('Backend status check failed:', statusError);
+        throw new Error('Could not connect to the backend service. Please ensure it is running.');
+      }
+      
       // Get chat completion from the real API
       const response = await getChatCompletion(
         messages.concat(userMessage).map(m => ({ role: m.role, content: m.content }))
       );
+      
+      console.log('Received response from backend:', response);
 
       const botResponse = {
         role: 'assistant',
